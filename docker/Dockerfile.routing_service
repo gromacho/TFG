@@ -1,0 +1,14 @@
+ARG DOCKER_IMAGE_TAG
+FROM repo.rti.com:443/connext-containers-dev/routing-service:BUILD_7.3.0.0_20240210T000000Z_RTI_REL-x64Linux4gcc7.3.0
+
+USER root
+STOPSIGNAL SIGINT
+
+
+# DOCKER BUILD MUST BE DONE FROM ROOT
+
+# docker build -t rticom/webint-maps:6.9.0 -f Dockerfile.webint_maps ../ --build-arg DOCKER_IMAGE_TAG=7.2.0
+
+# docker run -it --rm --entrypoint /bin/bash -e NDDS_DISCOVERY_PEERS="rtps@udpv4_wan://a9d028c802b704c2488cdc8cf4bf1131-f292a9e0da775185.elb.eu-west-3.amazonaws.com:7400" rticom/connext_sdk:complex_example_test
+
+# docker push rticom/connext_sdk:complex_example_test 

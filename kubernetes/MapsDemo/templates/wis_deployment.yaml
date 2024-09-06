@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: wis
+  name: wis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wis
+  template:
+    metadata:
+      labels:
+        app: wis
+    spec:
+      imagePullSecrets:
+        - name: docker-hub
+      containers:
+        - name: wis
+          image: rticom/webint-maps:6.9.0
+          imagePullPolicy: Always
+          env:
+            - name: NDDS_DISCOVERY_PEERS
+              value: {{ .Values.CDS_CLUSTER_IP }} #Internal CDS CLUSTER IP
+              # value: "rtps@udpv4://10.100.14.152:7400"
+
+          command: ["rtiwebintegrationservice"]
+          args: ["-cfgFile", "maps/maps_webint/maps_demo.xml",
+          "-cfgName","MapsDemo","-documentRoot","maps/", "-enableWebSockets", "-enableKeepAlive", "yes"]
+
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: license-volume
+              mountPath: /opt/rti.com/rti_connext_dds-7.3.0/rti_license.dat # where the license is mounted
+              subPath: rti_license.dat
+      volumes:
+          - name: license-volume
+            configMap:
+              name: rti-license
+              defaultMode: 0777
+

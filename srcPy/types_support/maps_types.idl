@@ -1,0 +1,78 @@
+struct position {
+    double lon;
+    double lat;
+};
+
+struct car_info {
+    @key
+    int32 id;
+    position current_position;
+    double angle;
+    boolean arrival;
+    @optional
+    string user_in_control;
+    float rpm;          
+    float kph;
+    float litersFuel;
+    float kmPerLiter;
+    float rangeKm;
+    float headingDegreesNorth;
+    long gear;
+    boolean isEngineHot;
+    boolean isFuelLow;
+    boolean isParkingBrakeOn;
+    boolean isAbsActive;
+    boolean isParkingLightsOn;
+    boolean isIceDetected;
+    boolean isUnbeltedPassenger;
+};
+
+struct command {
+    @key
+    int32 id;
+    position destination;
+};
+
+struct route {
+    @key 
+    int32 id;
+    sequence<position> path;
+};
+
+struct failure_assistance {
+    @key
+    int32 id_car;
+    boolean need_asistance;
+};
+
+enum car_aviability {
+    AVAILABLE,
+    BUSY,
+    FAIL
+};
+
+enum request_type {
+    CONTROL,
+    RELEASE
+};
+
+struct request_control {
+    @key
+    string<255> id_user;
+    int32 id_car;
+    request_type request;
+};
+
+struct replay_control {
+    @key
+    string id_user;
+    int32 id_car;
+    car_aviability replay;
+};
+
+struct user_info {
+  @key
+  int32 id_car;
+  string username;
+};
+

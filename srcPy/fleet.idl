@@ -1,0 +1,40 @@
+struct position {
+    double lon;
+    double lat;
+};
+
+struct car_info {
+    @key
+    int32 id;
+    position current_position;
+    @unit("degrees") double angle;
+    boolean arrival;
+};
+
+enum car_aviability {
+    AVAILABLE,
+    BUSY,
+    FAIL
+};
+
+enum request_type {
+    CONTROL,
+    RELEASE
+};
+
+struct request_control {
+    @key
+    string<255> id_user;
+    int32 id_car;
+    request_type request;
+};
+
+struct replay_control {
+    @key
+    string id_user;
+    int32 id_car;
+    car_aviability replay;
+};
+
+
+

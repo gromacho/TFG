@@ -1,0 +1,22 @@
+ARG DOCKER_IMAGE_TAG
+FROM repo.rti.com:443/connext-containers-dev/connext-sdk:BUILD_7.3.0.0_20240210T000000Z_RTI_REL-x64Linux4gcc7.3.0
+# COPY USES RELATIVES PATHS FROM THE BUILD CONTEXT
+USER root
+STOPSIGNAL SIGINT
+
+# Install Python 3
+RUN apt-get update && apt-get install -y python3
+
+RUN pip install rti.connext==7.3.0 --extra-index-url https://repo.rti.com/artifactory/api/pypi/pypi/simple
+
+COPY ./fleet_managment_service/ /home/rtiuser/fleet_managment_service/
+
+WORKDIR /home/rtiuser/fleet_managment_service/
+ 
+# DOCKER BUILD MUST BE RUN FROM MAPS_PROJECT_K8S
+
+# docker build -t rticom/webint-maps:6.9.0 -f Dockerfile.webint_maps ../ --build-arg DOCKER_IMAGE_TAG=7.2.0
+
+# docker run -it --rm --entrypoint /bin/bash -e NDDS_DISCOVERY_PEERS="rtps@udpv4_wan://a9d028c802b704c2488cdc8cf4bf1131-f292a9e0da775185.elb.eu-west-3.amazonaws.com:7400" rticom/connext_sdk:complex_example_test
+
+# docker push rticom/connext_sdk:complex_example_test 

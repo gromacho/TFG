@@ -1,0 +1,138 @@
+# (c) 2022 Copyright, Real-Time Innovations, Inc.  All rights reserved.
+# No duplications, whole or partial, manual or electronic, may be made
+# without express written permission.  Any such copies, or revisions thereof,
+# must display this notice unaltered.
+# This code contains trade secrets of Real-Time Innovations, Inc.
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+
+[tool.poetry]
+authors = ["John Smith <john@example.com>"]
+description = "A sample description"
+documentation = "http://README.md"
+license = "Propietary"
+name = "rti-car"
+packages = [{include = "car_app"}, {include = "fleet_managment_service"}, {include = "types_support"}]
+readme = "README.md"
+repository = "https://bitbucket.rti.com/projects/INTERN/repos/intern69/browse"
+version = "0.0.0"
+
+[tool.poetry.scripts]
+car_app = "car_app.car_participant:main"
+fleet_managment_service = "fleet_managment_service.fleet_participant:main"
+
+# fleet_managment_service = "fleet_managment_service.fleet_participant"
+
+[tool.poetry-dynamic-versioning]
+dirty = true
+enable = true
+format-jinja = "{% if distance == 0 %}{{ base }}{% else %}{{ base }}+{{ distance }}.{{ commit }}{% endif %}"
+latest-tag = true
+vcs = "git"
+
+[[tool.poetry.source]]
+name = "artifactory"
+url = "https://repo.rti.com/artifactory/api/pypi/pypi/simple"
+
+[tool.poetry.dev-dependencies]
+black = "22.3.0"
+faker = "15.0.0"
+isort = "5.9.3"
+tox = "3.26.0"
+
+[tool.poetry.dependencies]
+# Dependencies should go here
+python = ">=3.8,<4.0"
+osmnx = "1.8.0"
+scikit-learn = "1.3.2"
+"rti.connext" = "7.2.0"
+
+# tox-test extra dependencies
+coverage = {version = "6.5.0", optional = true, extras = ["toml"]}
+pytest = {version = "7.1.3", optional = true}
+pytest-blockage = {version = "0.2.4", optional = true}
+pytest-cov = {version = "4.0.0", optional = true}
+pytest-emoji = {version = "0.2.0", optional = true}
+pytest-timeout = {version = "2.1.0", optional = true}
+
+# tox-lint extra dependencies
+flake8 = {version = "5.0.4", optional = true}
+flake8-eradicate = {version = "1.4.0", optional = true}
+mypy = {version = "0.982", optional = true}
+pylama = {version = "8.4.1", optional = true}
+pylint = {version = "2.15.3", optional = true}
+
+[tool.poetry.extras]
+tox-lint = [
+  "flake8",
+  "flake8-eradicate",
+  "mypy",
+  "pylint",
+  "pylama",
+]
+tox-test = [
+  "pytest",
+  "faker",
+  "pytest-blockage",
+  "coverage",
+  "pytest-cov",
+  "pytest-emoji",
+  "pytest-timeout",
+]
+
+[tool.black]
+line-length = 99
+preview = true
+
+[tool.isort]
+line_length = 99
+lines_between_types = 1
+profile = "black"
+
+[tool.mypy]
+
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module = []
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = "fixme,duplicate-code"
+
+[tool.coverage.report]
+exclude_lines = ["raise NotImplementedError"]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+isolated_build = True
+envlist = py38,py39,py310,lint
+skip_missing_interpreters = true
+
+[testenv]
+whitelist_externals = poetry
+skip_install = True
+commands =
+    poetry install -E tox-test
+    pytest -x \
+        {posargs:{toxinidir}/tests/  --cov-report=term-missing  --cov-fail-under=80} \
+        -vvv --cov=src --cov-report=html \
+        --junitxml={toxinidir}/junit-reports/unit.xml -vvv \
+        --timeout=10 --blockage --emoji
+
+[testenv:lint]
+whitelist_externals = poetry
+skip_install = True
+commands =
+    poetry install -E tox-lint
+    pydocstyle {toxinidir}/src {toxinidir}/tests
+    flake8 {toxinidir}/src/ {toxinidir}/tests/ --count --max-line-length 99 --ignore E203,W503
+    black --check {toxinidir}/src/ {toxinidir}/tests/
+    isort --check {toxinidir}/src/ {toxinidir}/tests/
+    mypy {toxinidir}/src {toxinidir}/tests
+    pylint {toxinidir}/src/ {toxinidir}/tests/
+"""
+
+[tool.pytest.ini_options]
+junit_family = "xunit1"
+python_classes = []

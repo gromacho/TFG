@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: routing
+  name: routing
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: routing
+  template:
+    metadata:
+      labels:
+        app: routing
+    spec:
+      imagePullSecrets:
+        - name: docker-hub
+      containers:
+        - env:
+            - name: PUBLIC_IP
+              value: {{ .Values.ROUTING_LB }} # Replace it with the Routing Load Balancer IP 
+              # value: "ae1bfd27041654e378ff6c29942b20c8-e4d4e33d9e1a2510.elb.eu-west-3.amazonaws.com"
+            - name: HOST_PORT
+              value: "16000"
+            - name: WAN_DOMAIN
+              value: "0"
+            - name: LAN_DOMAIN
+              value: "0"
+            - name: PUBLIC_PORT 
+              value: "16000"
+            - name: INTERNAL_CDS_IP
+              value: {{ .Values.CDS_CLUSTER_IP }} #Internal CDS CLUSTER IP
+              # value: "rtps@udpv4://10.100.14.152:7400"
+
+          image: rticom/routing-maps:6.9.0
+          imagePullPolicy: Always
+
+          command: ["rtiroutingservice"]
+          args: ["-cfgFile","/app/routing-config.xml","-cfgName","RS-RWT","-verbosity","ALL"]
+
+          # command: ["/bin/sh", "-c", "sleep 1000000"]
+
+          name: routing
+          ports:
+            - containerPort: 16000
+          volumeMounts:
+            - name: license-volume
+              mountPath: /opt/rti.com/rti_connext_dds-7.3.0/rti_license.dat # where the license is mounted
+              subPath: rti_license.dat
+            - name: config-volume
+              mountPath: /app          
+      volumes:
+        - name: config-volume
+          configMap:
+            name: routing-config
+        - name: license-volume
+          configMap:
+            name: rti-license
+            defaultMode: 0777

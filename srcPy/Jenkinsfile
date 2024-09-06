@@ -1,0 +1,65 @@
+/* (c) 2022 Copyright, Real-Time Innovations, Inc.  All rights reserved.
+* No duplications, whole or partial, manual or electronic, may be made
+* without express written permission.  Any such copies, or revisions thereof,
+* must display this notice unaltered.
+* This code contains trade secrets of Real-Time Innovations, Inc.
+*/
+
+pipeline {
+    agent {
+        dockerfile {
+            additionalBuildArgs '--build-arg USER_UID=$UID'
+        }
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Run tests') {
+            steps {
+                sh('poetry install -E test --no-root --no-dev')
+                sh('poetry run tox')
+            }
+            post {
+                failure {
+                    error('Error ocurred running the tests!')
+                }
+            }
+        }
+
+        stage('Build and publish Python package') {
+            when {
+                buildingTag()
+            }
+            steps {
+                sh('poetry config repositories.artifactory https://repo.rti.com/artifactory/api/pypi/pypi/')
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'artifactory-credentials',
+                        usernameVariable: 'ARTIFACTORY_USER',
+                        passwordVariable: 'ARTIFACTORY_PASS'
+                    )
+                ]) {
+                    sh(
+                        "poetry publish --build -r artifactory -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_PASS}"
+                    )
+                }
+            }
+            post {
+                failure {
+                    error('Error building and publishing the package!')
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}

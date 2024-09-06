@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: car-participant
+  labels:
+    app: car-participant
+spec:
+  replicas: {{ .Values.NUM_REPLICAS }}
+  selector:
+    matchLabels:
+      app: car-participant
+  template:
+    metadata:
+      labels:
+        app: car-participant
+    spec:
+      imagePullSecrets:
+          - name: docker-hub
+      containers:
+      - name: car-participant
+        image: rticom/car_participant:6.9.0
+        imagePullPolicy: Always
+        env:
+          - name: NDDS_DISCOVERY_PEERS
+            value: {{ .Values.CAR_INITIAL_PEERS }} #External Load Balancer IP
+          - name: POD_INDEX
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        
+        # command: ["/bin/sh", "-c", "sleep 1000000"]
+        command: ["/bin/sh", "-c"]
+        args: ["python3 car_participant.py $POD_INDEX"]
+
+        ports:
+            - containerPort: 8080
+        volumeMounts:
+          - name: license-volume
+            mountPath: /opt/rti.com/rti_connext_dds-7.3.0/rti_license.dat 
+            subPath: rti_license.dat
+
+      volumes:
+          - name: license-volume
+            configMap:
+              name: rti-license
+              defaultMode: 0777
+

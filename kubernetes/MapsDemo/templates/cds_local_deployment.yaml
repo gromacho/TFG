@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: StatefulSet 
+metadata:
+  labels:
+    app: cds-local
+  name: cds-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cds-local
+  template:
+    metadata:
+      labels:
+        app: cds-local
+    spec:
+      imagePullSecrets:
+        - name: docker-hub
+
+      containers:
+        - name: cds-local
+          image: rticom/cds-maps:6.9.0
+          imagePullPolicy: Always
+
+          command: ["rticlouddiscoveryservice"] # to run CDS with the default config
+          args: ["-verbosity","ALL"]
+
+          volumeMounts:
+            - name: license-volume
+              mountPath: /opt/rti.com/rti_connext_dds-7.3.0/rti_license.dat # where the license is mounted
+              subPath: rti_license.dat
+      
+      volumes:
+        - name: license-volume
+          configMap:
+            name: rti-license
+            defaultMode: 0777

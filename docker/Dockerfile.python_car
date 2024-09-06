@@ -1,0 +1,17 @@
+ARG DOCKER_IMAGE_TAG
+FROM repo.rti.com:443/connext-containers-dev/connext-sdk:BUILD_7.3.0.0_20240210T000000Z_RTI_REL-x64Linux4gcc7.3.0
+# COPY USES RELATIVES PATHS FROM THE BUILD CONTEXT
+USER root
+STOPSIGNAL SIGINT
+
+# Install Python 3
+RUN apt-get update && apt-get install -y python3
+
+RUN pip install rti.connext==7.3.0 --extra-index-url https://repo.rti.com/artifactory/api/pypi/pypi/simple
+
+# Install additional packages
+RUN pip install osmnx==1.8.0 scikit-learn==1.3.2
+
+COPY ./car_app/ /home/rtiuser/car_app/
+
+WORKDIR /home/rtiuser/car_app/
